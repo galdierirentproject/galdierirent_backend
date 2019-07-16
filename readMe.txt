@@ -1,5 +1,2 @@
-BUG  Mongoose:
-Attenzione nella dichiarazione del modello non è possibile denominare un attributo TYPE poichè rappresenta una parola chiave
-https://stackoverflow.com/questions/43356267/mongooseerror-cast-to-embedded-failed-for-value
-
----------------------------------------------------------------------------------------------------------------------------------------
+#BACK-END 
+GALDIERIRENT
