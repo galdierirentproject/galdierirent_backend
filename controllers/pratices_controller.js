@@ -441,7 +441,7 @@ async function elimina_pratica_stato(args) {
  * @returns {Pratices} Pratices found in db 
  * @returns {Int} Number of files found
  */
-async function creazione_spostamento_pratica(args) {
+async function creazione_spostamento_pratica_old(args) {
     return new Promise((resolve, reject) => {
         var pratica_input = args.pratica;
         //next state recovery from input
@@ -458,7 +458,6 @@ async function creazione_spostamento_pratica(args) {
             let p = new Pratices.pratices();
             pratica_input._id = p._id;
             pratica_input.consulente = stato_input.azioni[0].utente;
-
             Pratices.state_000.findOneAndUpdate({ _id: pratica_input._id }, { $set: pratica_input }, { new: true, upsert: true }, (err, ParticularPratice) => {
                 if (err) {
                     console.log(err);
@@ -470,11 +469,8 @@ async function creazione_spostamento_pratica(args) {
         //ultimate state pratice 
         else if (pratica_input.stato[pratica_input.stato.length - 1].numero != stato_input.numero) {
             var retGlobalPratice = StateSwitch(pratica_input.stato[pratica_input.stato.length - 1].nome);
-
             console.log('diverso', pratica_input.stato[pratica_input.stato.length - 1], stato_input.numero, retGlobalPratice);
-
             pratica_input.stato.push(stato_input);
-
             retGlobalPratice.findOneAndDelete({ _id: pratica_input._id }, (err, ParticularPratice) => {
                 if (err) {
                     console.log(err);
@@ -482,7 +478,6 @@ async function creazione_spostamento_pratica(args) {
                     console.log(5);
             });
             retGlobalPratice = StateSwitch(pratica_input.stato[pratica_input.stato.length - 1].nome);
-
             retGlobalPratice.findOneAndUpdate({ _id: pratica_input._id }, { $set: pratica_input }, { new: true, upsert: true }, (err, ParticularPratice) => {
                 if (err) {
                     console.log(err);
@@ -492,17 +487,17 @@ async function creazione_spostamento_pratica(args) {
             });
         } else if (pratica_input.stato[pratica_input.stato.length - 1].numero = stato_input.numero) {
             var retGlobalPratice = StateSwitch(pratica_input.stato[pratica_input.stato.length - 1].nome);
-
-            console.log('ultimo stato uguale', pratica_input.stato.length - 1, stato_input.numero);
-
+            console.log('ultimo stato uguale', pratica_input.stato[pratica_input.stato.length - 1].numero, stato_input.numero);
             stato_input.azioni.forEach(element => {
+                console.log(element);
                 pratica_input.stato[pratica_input.stato.length - 1].azioni.push(element);
             });
             retGlobalPratice.findOneAndUpdate({ _id: pratica_input._id }, { $set: pratica_input }, { new: true, upsert: true }, (err, ParticularPratice) => {
                 if (err) {
                     console.log(err);
                 } else {
-                    console.log(0);
+                    console.log(stato_input.azioni);
+                    console.log(0, );
                 }
             });
         }
@@ -519,9 +514,61 @@ async function creazione_spostamento_pratica(args) {
                 reject({ message: 'globalPratice' + err });
             } else {
                 console.log(3);
-                resolve({ message: 'ok' + GlobalPratice });
+                resolve({ message: 'ok' });
             }
         });
+
+    })
+};
+
+
+
+async function creazione_spostamento_pratica(args) {
+    return new Promise((resolve, reject) => {
+        var pratica_input = args.pratica;
+        //next state recovery from input
+        var stato_input = args.stato;
+        if (pratica_input._id) {
+            let num_ultimo_stato = pratica_input.stato[pratica_input.stato.length - 1];
+            if (num_ultimo_stato.numero === stato_input.numero) {
+                stato_input.azioni.forEach(element => {
+                    num_ultimo_stato.azioni.push(element);
+                });
+            } else {
+                num_ultimo_stato.stato.push(stato_input);
+            }
+            var retGlobalPratice = StateSwitch(pratica_input.stato[pratica_input.stato.length - 1].nome);
+            retGlobalPratice.findOneAndUpdate({ _id: pratica_input._id }, { $set: pratica_input }, { new: true, upsert: true }, (err, ParticularPratice) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(0);
+                }
+            });
+        } else {
+            //nuova pratica
+            pratica_input._id = new Pratices.state_000()._id;
+            pratica_input.stato = stato_input;
+            Pratices.state_000.findOneAndUpdate({ _id: pratica_input._id }, { $set: pratica_input }, { new: true, upsert: true }, (err, ParticularPratice) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(2);
+                }
+            });
+        }
+        //alla fine aggiorno la pratica globale
+        Pratices.pratices.findOneAndUpdate({ _id: pratica_input._id }, { $set: pratica_input }, { new: true, upsert: true }, (err, GlobalPratice) => {
+            if (err) {
+                console.log(err);
+                reject({ message: 'globalPratice' + err });
+            } else {
+                console.log(3);
+                resolve({ message: 'ok' });
+            }
+        });
+
+
 
     })
 };
