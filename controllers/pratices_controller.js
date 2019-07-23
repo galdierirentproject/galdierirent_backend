@@ -14,7 +14,9 @@ var mkdirp = require('mkdirp');
 //path folder 
 const path_folder = '/var/www/vhosts/galdierirent.info/graphql.galdierirent.info';
 //file system for upload
-const fs = require('fs')
+const fs = require('fs');
+var mongodb = require('mongodb'); // <-- Bahaa update
+
 
 /**
  *the mongoose collection returns based on the state of the practice
@@ -102,7 +104,7 @@ async function paginatore_richieste_inviate_stato(args) {
         var user_seller = params.username;
         var stato = args.stato;
         var collection = StateSwitch(stato);
-        collection.aggregate(
+            collection.aggregate(
                 [
                     { $match: { 'consulente.username': user_seller } },
                     {
@@ -135,7 +137,7 @@ async function paginatore_richieste_inviate_stato(args) {
                         });
                         error.code = 404;
                     } else {
-                        console.log('sto per risolvere', pratice.length);
+                        // console.log('sto per risolvere', pratice.length); <-- commented by Bahaa
                         if (pratice.length === 0) {
                             console.log('vuota');
                         }
@@ -238,13 +240,13 @@ async function numero_richieste_inviate_stato(args) {
 // }
 async function paginatore_richieste_ricevute_stato(args) {
     return new Promise(async(resolve, reject) => {
-        console.log('inviate', args);
+        //console.log('inviate', args); <-- commented by bahaa
         var params = args;
         var skip = parseInt(params.skip);
         var limit = parseInt(params.limit);
         var stato = args.stato;
         var collection = StateSwitch(stato);
-        console.log(collection);
+        //console.log(collection); <-- commented by bahaa
         collection.aggregate(
                 [{
                     $project: {
@@ -535,7 +537,7 @@ async function creazione_spostamento_pratica(args) {
                     num_ultimo_stato.azioni.push(element);
                 });
             } else {
-                num_ultimo_stato.stato.push(stato_input);
+                pratica_input.stato.push(stato_input); // <-- Bahaa update
             }
             var retGlobalPratice = StateSwitch(pratica_input.stato[pratica_input.stato.length - 1].nome);
             retGlobalPratice.findOneAndUpdate({ _id: pratica_input._id }, { $set: pratica_input }, { new: true, upsert: true }, (err, ParticularPratice) => {
@@ -545,6 +547,20 @@ async function creazione_spostamento_pratica(args) {
                     console.log(0);
                 }
             });
+            // Bahaa Updates {
+            if (pratica_input.stato.length > 2) {
+                console.log('hereeee',pratica_input.stato[pratica_input.stato.length - 2].nome);
+                const collection = StateSwitch(pratica_input.stato[pratica_input.stato.length - 2].nome);
+                collection.deleteOne({_id: new mongodb.ObjectID(pratica_input._id )},function(err,question){
+                    if(err) {
+                        throw err;
+                    }
+                    else {
+                        console.log('the document is deleted')
+                    }
+                });
+            }
+            // } Bahaa Updates
         } else {
             //nuova pratica
             pratica_input._id = new Pratices.state_000()._id;
@@ -563,7 +579,7 @@ async function creazione_spostamento_pratica(args) {
                 console.log(err);
                 reject({ message: 'globalPratice' + err });
             } else {
-                console.log(3);
+                // console.log(3); <-- commented by Bahaa
                 resolve({ message: 'ok' });
             }
         });
