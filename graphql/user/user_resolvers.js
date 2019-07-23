@@ -87,6 +87,7 @@ const resolver_user = {
     },
     Mutation: {
         crea_utente: async(parent, args, context) => {
+
             var token = context.result.slice(7);
 
             const result = await user_controller.crea_utente(args);
@@ -118,14 +119,42 @@ const resolver_user = {
         },
 
         paginatore_clienti: async(parent, args, context) => {
-            const result = await user_controller.paginatore_clienti(args);
-            const num = await user_controller.numero_clienti_paginatore(args.utente, args.filterValue, args.selection_key);
-            return { utenti: result, n_utenti: num };
+            var token = context.result.slice(7);
+            return jwt.verify(token, process.env.JWT_SECRET, async(err, decode) => {
+                if (err) {
+                    const error = new UserInputError('token expired!!!', {
+                        invalidArgs: context,
+                        myError: "token expired or invalid"
+                    });
+                    error.code = 401;
+                    return error;
+                } else {
+                    const result = await user_controller.paginatore_clienti(args);
+                    const num = await user_controller.numero_clienti_paginatore(args.utente, args.filterValue, args.selection_key);
+                    return { utenti: result, n_utenti: num };
+                }
+            });
         },
         paginatore_utenti: async(parent, args, context) => {
-            const result = await user_controller.paginatore_utenti(args);
-            const num = await user_controller.numero_utenti_paginatore(args.filterValue, args.selection_key);
-            return { utenti: result, n_utenti: num };
+            var token = context.result.slice(7);
+            return jwt.verify(token, process.env.JWT_SECRET, async(err, decode) => {
+                if (err) {
+                    const error = new UserInputError('token expired!!!', {
+                        invalidArgs: context,
+                        myError: "token expired or invalid"
+                    });
+                    error.code = 401;
+                    return error;
+                } else {
+                    if ((jwt.decode(token).ruolo === 'superadmin')) {
+                        const result = await user_controller.paginatore_utenti(args);
+                        const num = await user_controller.numero_utenti_paginatore(args.filterValue, args.selection_key);
+                        return { utenti: result, n_utenti: num };
+                    } else {
+                        return 'Error role: not superadmin';
+                    }
+                }
+            });
         },
 
         generateshaForallDB: async(parent, args, context) => {
@@ -139,55 +168,11 @@ const resolver_user = {
 
             });
             return _output;
-
-            const result = jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
-                if (err) {
-                    const error = new UserInputError('token expired!!!', {
-                        invalidArgs: context,
-                        myError: "token expired or invalid"
-                    });
-                    error.code = 401;
-                    return error;
-                } else {
-                    //const user = await user_controller.elimina_utente(args);
-                    return true;
-                }
-            });
-            if (result === true) {
-
-            } else
-                return result
         },
 
 
         elimina_utente: async(parent, args, context) => {
-            const _output = await user_controller.elimina_utente(args);
-            return _output;
-
-            const result = jwt.verify(token, process.env.JWT_SECRET, (err, decode) => {
-                if (err) {
-                    const error = new UserInputError('token expired!!!', {
-                        invalidArgs: context,
-                        myError: "token expired or invalid"
-                    });
-                    error.code = 401;
-                    return error;
-                } else {
-                    //const user = await user_controller.elimina_utente(args);
-                    return true;
-                }
-            });
-            if (result === true) {
-
-            } else
-                return result
-        },
-
-
-
-        modifica_utente: async(parent, args) => {
             var token = context.result.slice(7);
-
             return jwt.verify(token, process.env.JWT_SECRET, async(err, decode) => {
                 if (err) {
                     const error = new UserInputError('token expired!!!', {
@@ -197,20 +182,29 @@ const resolver_user = {
                     error.code = 401;
                     return error;
                 } else {
-                    if ((jwt.decode(token).ruolo === 'superadmin')) {
-                        const result = await user_controller.update_graphql(args);
-                        return result;
-                    } else {
-                        const error = new UserInputError('auth!!!', {
-                            invalidArgs: context,
-                            myError: "ruolo non autorizzato"
-                        });
-                        error.code = 401;
-                        return error;
-                    }
+                    const _output = await user_controller.elimina_utente(args);
+                    return _output;
                 }
             });
+        },
 
+
+
+        modifica_utente: async(parent, args) => {
+            var token = context.result.slice(7);
+            return jwt.verify(token, process.env.JWT_SECRET, async(err, decode) => {
+                if (err) {
+                    const error = new UserInputError('token expired!!!', {
+                        invalidArgs: context,
+                        myError: "token expired or invalid"
+                    });
+                    error.code = 401;
+                    return error;
+                } else {
+                    const result = await user_controller.update_graphql(args);
+                    return result;
+                }
+            });
         }
     }
 };

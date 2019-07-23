@@ -12,7 +12,7 @@ const { UserInputError } = require('apollo-server-express');
 //import mkdir for create the folder pratice 
 var mkdirp = require('mkdirp');
 //path folder 
-const path_folder = '/var/www/vhosts/galdierirent.info/graphql.galdierirent.info';
+const path_folder = '/var/www/vhosts/galdierirents.info/graphql2.galdierirents.info';
 //file system for upload
 const fs = require('fs')
 
@@ -65,20 +65,10 @@ async function ricerca_pratica_stato(args) {
         var collection = StateSwitch(stato);
         collection.findOne({ _id: args.id }, (err, pratice) => {
             if (err) {
-                const error = new UserInputError('Mongo error!!!', {
-                    invalidArgs: err,
-                    myError: "error_test"
-                });
-                error.code = 503;
-                reject(error);
+                reject('Mongo error');
             } else {
                 if (!pratice) {
-                    const error = new UserInputError('User not found!!!', {
-                        invalidArgs: pratice,
-                        myError: "error_test"
-                    });
-                    error.code = 404;
-                    reject(error);
+                    reject('Pratica non trovata');
                 } else {
                     resolve(pratice);
                 }
@@ -121,24 +111,11 @@ async function paginatore_richieste_inviate_stato(args) {
             ).sort({ _id: -1 }).skip(skip * limit).limit(limit)
             .exec(function(err, pratice) {
                 if (err) {
-                    const error = new UserInputError('Mongo error!!!', {
-                        invalidArgs: err,
-                        myError: "erroprtest"
-                    });
-                    error.code = 422;
-                    console.log('errore:', err);
+                    reject('Mongo error');
                 } else {
                     if (!pratice) {
-                        const error = new UserInputError('No data!!!', {
-                            invalidArgs: err,
-                            myError: "erroprtest"
-                        });
-                        error.code = 404;
+                        reject('Pratica non trovata');
                     } else {
-                        console.log('sto per risolvere', pratice.length);
-                        if (pratice.length === 0) {
-                            console.log('vuota');
-                        }
                         resolve(pratice);
                     }
                 }
@@ -161,18 +138,10 @@ async function numero_richieste_inviate_stato(args) {
         collection.find({ 'consulente.username': user_seller }).count()
             .exec(function(err, pratice) {
                 if (err) {
-                    const error = new UserInputError('Mongo error!!!', {
-                        invalidArgs: err,
-                        myError: "erroprtest"
-                    });
-                    error.code = 422;
+                    reject('Mongo error');
                 } else {
                     if (!pratice) {
-                        const error = new UserInputError('No data!!!', {
-                            invalidArgs: err,
-                            myError: "erroprtest"
-                        });
-                        error.code = 404;
+                        reject('Pratica non trovata');
                     } else {
                         resolve(pratice);
                     }
@@ -180,71 +149,14 @@ async function numero_richieste_inviate_stato(args) {
             });
     });
 }
-/**
- *Controller for* Return all practices that reside in state 0
- * @param {Int} skip number of pages to be skipped
- * @param {Int} limit maximum number of files to be returned
- * @returns {Pratices} Pratices found in db 
- * @returns {Int} Number of files found
- */
-// async function paginatore_richieste_ricevute_stato(args) {
-//     return new Promise(async(resolve, reject) => {
-//         var params = args;
-//         var username = args.utente;
-//         var query = {};
-//         var skip = parseInt(params.skip);
-//         var limit = parseInt(params.limit);
-//         var stato = args.stato;
-//         var collection = StateSwitch(stato);
-//         console.log(username);
-//         collection.aggregate(
-//                 [{
-//                     $project: {
-//                         cliente: { $concat: ["$cliente.nome", " - ", "$cliente.cognome"] },
-//                         piva: '$cliente.piva',
-//                         km: '$chilometri',
-//                         sconto: '$sconto',
-//                         allegati: '$allegati',
-//                         durata: '$durata',
-//                         data: '$data',
-//                         commissioni: '$provvigioni_richieste',
-//                         veicolo: { $concat: ["$marca", " - ", "$modello"] },
-//                         utente: { $concat: ["$consulente.nome", " - ", "$consulente.cognome"] },
-//                         stato: { $arrayElemAt: ["$stato.nome", -1] }
-//                     }
-//                 }]
-//             ).sort({ _id: -1 }).skip(skip * limit).limit(limit)
-//             .exec(function(err, pratice) {
-//                 if (err) {
-//                     const error = new UserInputError('Mongo error!!!', {
-//                         invalidArgs: err,
-//                         myError: "erroprtest"
-//                     });
-//                     error.code = 422;
-//                 } else {
-//                     if (!pratice) {
-//                         const error = new UserInputError('No data!!!', {
-//                             invalidArgs: err,
-//                             myError: "erroprtest"
-//                         });
-//                         error.code = 404;
-//                     } else {
-//                         console.log(pratice);
-//                         resolve(pratice);
-//                     }
-//                 }
-//             });
-//     });
-// }
+
 async function paginatore_richieste_ricevute_stato(args) {
     return new Promise(async(resolve, reject) => {
-        console.log('inviate', args);
         var params = args;
         var skip = parseInt(params.skip);
         var limit = parseInt(params.limit);
         var stato = args.stato;
         var collection = StateSwitch(stato);
-        console.log(collection);
         collection.aggregate(
                 [{
                     $project: {
@@ -261,20 +173,11 @@ async function paginatore_richieste_ricevute_stato(args) {
             ).sort({ _id: -1 }).skip(skip * limit).limit(limit)
             .exec(function(err, pratice) {
                 if (err) {
-                    const error = new UserInputError('Mongo error!!!', {
-                        invalidArgs: err,
-                        myError: "erroprtest"
-                    });
-                    error.code = 422;
+                    reject('Mongo error');
                 } else {
                     if (!pratice) {
-                        const error = new UserInputError('No data!!!', {
-                            invalidArgs: err,
-                            myError: "erroprtest"
-                        });
-                        error.code = 404;
+                        reject('Pratica non trovata');
                     } else {
-                        console.log(pratice);
                         resolve(pratice);
                     }
                 }
@@ -295,18 +198,10 @@ async function numero_richieste_ricevute_stato(stato) {
         collection.find({}).count()
             .exec(function(err, pratice) {
                 if (err) {
-                    const error = new UserInputError('Mongo error!!!', {
-                        invalidArgs: err,
-                        myError: "erroprtest"
-                    });
-                    error.code = 422;
+                    reject('Mongo error');
                 } else {
                     if (!pratice) {
-                        const error = new UserInputError('No data!!!', {
-                            invalidArgs: err,
-                            myError: "erroprtest"
-                        });
-                        error.code = 404;
+                        reject('Pratica non trovata');
                     } else {
                         resolve(pratice);
                     }
@@ -380,23 +275,11 @@ async function filtro_ricerca_stato(args) {
                 ]
             ).sort({ _id: -1 }).exec(function(err, pratice) {
                 if (err) {
-                    console.log(err);
-                    const error = new UserInputError('Pratice not found!!!', {
-                        invalidArgs: err,
-                        myError: "error_pratice"
-                    });
-                    error.code = 404;
-                    reject(error);
+                    reject('Mongo error');
                 } else {
                     if (!pratice) {
-                        const error = new UserInputError('Pratice not found!!!', {
-                            invalidArgs: users,
-                            myError: "error_pratice "
-                        });
-                        error.code = 404;
-                        reject(error);
+                        reject('Pratica non trovata');
                     } else {
-                        console.log(pratice);
                         resolve(pratice);
                     }
                 }
@@ -411,7 +294,9 @@ async function filtro_ricerca_stato(args) {
  */
 async function crea_cartella_pratica(pratice) {
     return new Promise(async(resolve, reject) => {
+        console.log(path_folder + '/pratices/' + pratice._id);
         mkdirp(path_folder + '/pratices/' + pratice._id, (err_mkdi) => {
+            console.log(err_mkdi);
             resolve(true);
         });
     });
@@ -428,7 +313,7 @@ async function elimina_pratica_stato(args) {
         var collection = StateSwitch(stato);
         collection.findOneAndDelete({ '_id': praticeID }, (err, ParticularPratice) => {
             if (err) {
-                reject({ message: "No data" });
+                reject('Mongo error');
             } else
                 resolve({ message: 'utente cancellato', result: true });
         });
@@ -525,51 +410,70 @@ async function creazione_spostamento_pratica_old(args) {
 
 async function creazione_spostamento_pratica(args) {
     return new Promise((resolve, reject) => {
+        console.log('creazione pratica');
         var pratica_input = args.pratica;
+        var message='';
         //next state recovery from input
         var stato_input = args.stato;
         if (pratica_input._id) {
+            console.log(1);
             let num_ultimo_stato = pratica_input.stato[pratica_input.stato.length - 1];
+            console.log(2);
+
             if (num_ultimo_stato.numero === stato_input.numero) {
+                console.log(3);
+
                 stato_input.azioni.forEach(element => {
                     num_ultimo_stato.azioni.push(element);
                 });
             } else {
-                num_ultimo_stato.stato.push(stato_input);
+                pratica_input.stato.push(stato_input);
+                console.log(num_ultimo_stato.nome);
+                var deletePratice = StateSwitch(num_ultimo_stato.nome);
+                console.log('delete');
+                
+                deletePratice.findOneAndDelete({ _id: pratica_input._id }, (err, ParticularPratice) => {
+                    console.log('delete');
+                    if (err) {
+                        console.log(err);
+                        reject('Mongo error');
+                    }
+                });    
             }
             var retGlobalPratice = StateSwitch(pratica_input.stato[pratica_input.stato.length - 1].nome);
+            console.log(5);
+
             retGlobalPratice.findOneAndUpdate({ _id: pratica_input._id }, { $set: pratica_input }, { new: true, upsert: true }, (err, ParticularPratice) => {
                 if (err) {
-                    console.log(err);
-                } else {
-                    console.log(0);
+                    reject('Mongo error');
                 }
             });
         } else {
             //nuova pratica
+            console.log(6);
+
             pratica_input._id = new Pratices.state_000()._id;
             pratica_input.stato = stato_input;
             Pratices.state_000.findOneAndUpdate({ _id: pratica_input._id }, { $set: pratica_input }, { new: true, upsert: true }, (err, ParticularPratice) => {
                 if (err) {
-                    console.log(err);
-                } else {
-                    console.log(2);
+                    reject('Mongo error');
                 }
+                message="NEW";
             });
         }
+        console.log(7);
+
         //alla fine aggiorno la pratica globale
         Pratices.pratices.findOneAndUpdate({ _id: pratica_input._id }, { $set: pratica_input }, { new: true, upsert: true }, (err, GlobalPratice) => {
             if (err) {
-                console.log(err);
-                reject({ message: 'globalPratice' + err });
+                reject('Mongo error');
             } else {
-                console.log(3);
-                resolve({ message: 'ok' });
+                if(!message){
+                    message="UPDATE";
+                }
+                resolve({ message: message, pratice:GlobalPratice});
             }
         });
-
-
-
     })
 };
 
@@ -584,7 +488,7 @@ async function elimina_file(args) {
         let path = path_folder + '/pratices/' + args.id_pratica + '/' + args.file.nome;
         fs.unlink(path, (err) => {
             if (err) {
-                reject(err);
+                reject('Mongo error');
             }
             resolve({ message: 'file cancellato', result: true });
         });

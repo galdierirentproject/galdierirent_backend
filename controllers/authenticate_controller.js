@@ -17,12 +17,10 @@ async function authenticate(args) {
         User.find(query, (error, user) => {
             const errors = [];
             if (error) {
-                errors.push({ message: `Mongo error: ${error}` });
-                reject(errors);
+                reject('Mongo error');
             } else {
                 if (!user) {
-                    errors.push({ message: `Utente non trovato` });
-                    reject(errors);
+                    reject('Utente non esistente');
                 } else {
                     resolve(user[0]);
                 }
@@ -51,29 +49,25 @@ async function generate_token(args) {
 async function login(args) {
     return new Promise(async(resolve, reject) => {
         this.authenticate(args).then(async(utente) => {
+            if (!utente) {
+                reject('Username non corretta');
+            }
             let input_password = await bcrypt.hash(args.user.password, 10);
             const match = await bcrypt.compare(utente.password, input_password);
             if (match) {
                 //se l'uguaglianza è verificata genero il token
                 let token = await this.generate_token(utente);
                 utente.token = token;
-                console.log('utente', utente);
-                resolve(utente);
+                if (utente.state === 'abilitato') {
+                    resolve(utente);
+                } else {
+                    reject('Utente disabilitato');
+                }
             } else {
-                const error = new UserInputError('Password incorrect!!!', {
-                    invalidArgs: "password incorrect",
-                    myError: "password error"
-                });
-                error.code = 401;
-                reject(error);
+                reject('Password non corretta');
             }
         }).catch((errors) => {
-            const error = new UserInputError('Mongo', {
-                invalidArgs: errors,
-                myError: "Mongo"
-            });
-            error.code = 404;
-            reject(error);
+            reject(errors);
         });
 
     })

@@ -22,6 +22,8 @@ require('dotenv').config();
 //upload
 const fileUpload = require('express-fileupload');
 app.use(fileUpload());
+app.use(express.static(__dirname+'/users'));
+
 //header
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -58,16 +60,13 @@ server.applyMiddleware({ app });
 
 //secure path check token
 secureRoutes.use((req, res, next) => {
-    console.log('1', req.query)
     var token = req.query.token || req.headers['Bearer'];
     if (token) {
-        console.log('sono in if', token);
         jwt.verify(token, process.env.JWT_SECRET, function(err, decode) {
             if (err) {
-                console.log('err', process.env.JWT_SECRET)
-                next();
+                res.status(500).send("Invalid Token");
+
             } else {
-                console.log('access ok');
                 next();
             }
         })

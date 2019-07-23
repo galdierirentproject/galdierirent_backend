@@ -29,6 +29,7 @@ async function getCars() {
 
 async function filteredModels(args) {
     return new Promise(async (resolve, reject) => {
+        console.log(args);
         let query_1 = {};
         let query_2 = {};
 
@@ -57,6 +58,7 @@ async function filteredModels(args) {
                     error.code = 404;
                     reject(error);
                 } else
+                console.log(cars.models);
                     resolve(cars);
             }
         });
@@ -64,6 +66,7 @@ async function filteredModels(args) {
 };
 
 async function filteredBrands(args) {
+    console.log(args);
     return new Promise(async (resolve, reject) => {
         let query_1 = {};
         query_1['brand'] = new RegExp(args.filtro, 'i');

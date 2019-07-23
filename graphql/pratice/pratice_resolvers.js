@@ -96,7 +96,10 @@ const resolver_pratice = {
          */
         creazione_spostamento_pratica: async(parent, args) => {
             const result = await pratice_controller.creazione_spostamento_pratica(args);
-            return result;
+            if(result.message==='NEW'){
+                await pratice_controller.crea_cartella_pratica(result.pratice);
+            }
+            return result.pratice;
         },
         /**
          * elimination of the practice from state 0
